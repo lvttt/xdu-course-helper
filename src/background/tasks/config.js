@@ -13,7 +13,7 @@ export async function handleGetConfig(tabId) {
         target: { tabId },
         world: 'MAIN',
         func: () => {
-            return getLocalStorage('extConfig');
+            return window.xdu_course_helper.getLocalStorage('extConfig');
         }
     }).then((results) => {
         const [{ result }] = results;
@@ -27,7 +27,7 @@ export async function handleUpdateConfig(tabId, newConfig) {
         target: { tabId },
         world: 'MAIN',
         func: (config) => {
-            setLocalStorage('extConfig', config);
+            window.xdu_course_helper.setLocalStorage('extConfig', config);
         },
         args: [newConfig]
     });

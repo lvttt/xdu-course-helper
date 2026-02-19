@@ -253,6 +253,12 @@ function getLocalStorage(key) {
     }
 }
 
+window.xdu_course_helper = {
+    clearCookiesAndRedirect,
+    setLocalStorage,
+    getLocalStorage
+};
+
 // Hook XMLHttpRequest
 (function() {
     const OriginalXHR = window.XMLHttpRequest;

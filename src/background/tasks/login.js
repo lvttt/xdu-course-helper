@@ -7,7 +7,7 @@ export async function handleLoginWithVcode(tabId, { vcodeToken, vcode }) {
         func: async (loginData) => {
             const loginUrl = "https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/login/check/login.do";
             const { vcodeToken, vcode } = loginData;
-            const loginInfo = getLocalStorage("loginInfo");
+            const loginInfo = window.xdu_course_helper.getLocalStorage("loginInfo");
             if (!loginInfo) {
                 throw new Error("未找到登录信息，请先登录一次并勾选记住账号密码");
             }

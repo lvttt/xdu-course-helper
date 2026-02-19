@@ -18,6 +18,8 @@ export async function handleClearCookies(tabId) {
   return chrome.scripting.executeScript({
     target: { tabId },
     world: 'MAIN',
-    func: clearCookiesAndRedirect
+    func: () => {
+      window.xdu_course_helper.clearCookiesAndRedirect();
+    }
   });
 }
