@@ -262,7 +262,6 @@ window.xdu_course_helper = {
 // Hook XMLHttpRequest
 (function() {
     const OriginalXHR = window.XMLHttpRequest;
-    const extConfig = getLocalStorage("extConfig") || {};
 
     function HookedXHR() {
         const xhr = new OriginalXHR();
@@ -277,6 +276,7 @@ window.xdu_course_helper = {
 
         xhr.send = function(data) {
             if (this.__url) {
+                const extConfig = getLocalStorage("extConfig") || {};
                 if (this.__url.includes("check/login.do")) {
                     if (data && extConfig.rememberMe) {
                         const params = new URLSearchParams(data);
@@ -295,6 +295,7 @@ window.xdu_course_helper = {
         xhr.addEventListener('readystatechange', function() {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 if (this.__url) {
+                    const extConfig = getLocalStorage("extConfig") || {};
                     let data = xhr.responseText;
                     let json_data = false;
 
@@ -303,15 +304,16 @@ window.xdu_course_helper = {
                             data = JSON.parse(xhr.responseText);
                             json_data = true;
                         } catch (e) {
-                            console.error("Error parsing response:", e);
-                            // clearCookiesAndRedirect();
-                            return;
+                            if (extConfig.redirectOnError) {
+                                clearCookiesAndRedirect();
+                            }
                         }
 
                         if (data.msg && data.msg === "NullPointer") {
-                            console.log("检测到 NullPointer 错误，可能是会话过期，正在清除 cookies 并重定向到登录页...");
-                            // clearCookiesAndRedirect();
-                            return;
+                            if (extConfig.redirectOnError) {
+                                clearCookiesAndRedirect();
+                            }
+                            console.error("Received NullPointer error from server, please redirecting to login page.");
                         }
                     }
 
@@ -335,13 +337,12 @@ window.xdu_course_helper = {
                                     "tip": null
                                 };
                             }
+
+                            if (extConfig.enablePageSizeChange && extConfig.pageSize) {
+                                data.xtcsMap.xkgl_xsxkmymrxsjls = extConfig.pageSize.toString();
+                            }
                             
                         }
-
-                        if (extConfig.pageSize) {
-                            data.xtcsMap.xkgl_xsxkmymrxsjls = extConfig.pageSize.toString();
-                        }
-                        
                         console.log("Mocked loadPublicInfo_course.do response:", data);
                     } else if (this.__url.includes("loadPublicInfo_index.do")) {
                         // 记录lcxxMap

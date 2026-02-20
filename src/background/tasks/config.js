@@ -4,7 +4,9 @@
 const defaultConfig = {
     enableJumpXK: false,
     pageSize: 30,
-    rememberMe: false
+    rememberMe: false,
+    redirectOnError: false,
+    enablePageSizeChange: false
 };
 
 // 获取扩展配置

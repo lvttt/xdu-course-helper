@@ -25,7 +25,13 @@ export async function handleLoginWithVcode(tabId, { vcodeToken, vcode }) {
                     },
                     body: payload.toString()
                 });
+
                 const result = await response.json();
+                if (result.code === "1") {
+                    // 登录成功，刷新页面
+                    window.location.reload();
+                }
+
                 console.log("登录请求结果:", result);
                 return result;
             } catch (err) {

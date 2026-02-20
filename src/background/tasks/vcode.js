@@ -7,6 +7,8 @@ export async function getVcodeToken(tabId) {
         world: 'MAIN',
         func: async () => {
             const vcode_url = "https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/login/4/vcode.do";
+            // 清除Cookie中的_WEU
+            document.cookie = "_WEU=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=" + commonUtil.getProjectName();
 
             return await fetch(vcode_url).then(response => response.json()).then(data => {
                 console.log("获取验证码token成功:", data);
