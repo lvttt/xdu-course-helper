@@ -9,30 +9,38 @@ chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ tabId: tab.id });
 });
 
-// 设置侧边栏在特定网站才可用
-chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-  if (!tab.url) return;
+async function updateSidePanelState(tabId, url) {
+  if (!url) return;
 
-  const url = new URL(tab.url);
-
-  const isCourseSite = url.origin.includes("yjsxk.xidian.edu.cn");
+  const isCourseSite = url.includes("https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/");
 
   if (isCourseSite) {
-    // 在选课网站：启用侧边栏
+    // 目标网站：启用侧边栏
     await chrome.sidePanel.setOptions({
       tabId,
       path: 'index.html',
       enabled: true
     });
-    console.log("侧边栏已激活");
   } else {
-    // 非选课网站：禁用侧边栏（点击图标将无反应或显示不可用）
+    // 非目标网站：禁用
     await chrome.sidePanel.setOptions({
       tabId,
       enabled: false
     });
-    console.log("非目标网站，侧边栏已禁用");
   }
+}
+
+// 监听标签页更新
+chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
+  if (info.status === 'complete') {
+    await updateSidePanelState(tabId, tab.url);
+  }
+});
+
+// 监听标签页切换
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+  const tab = await chrome.tabs.get(activeInfo.tabId);
+  await updateSidePanelState(activeInfo.tabId, tab.url);
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
