@@ -36,6 +36,10 @@ export async function handleLoginWithVcode(tabId, { vcodeToken, vcode }) {
                 return result;
             } catch (err) {
                 console.error("登录请求失败:", err);
+                if (err instanceof SyntaxError) {
+                    // 登录错误次数过多,限制5分钟内禁止登录
+                    return { code: "4", msg: "登录错误次数过多,限制5分钟内禁止登录" };
+                }
                 throw err;
             }
         },
