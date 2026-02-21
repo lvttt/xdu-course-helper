@@ -22,8 +22,9 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://yjsxk.xidian.edu.cn/*"], 
+      "matches": ["https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/course.html"], 
       "js": ["src/content/index.js"],
+      "world": "MAIN",
       "run_at": "document_end"
     },
     {
