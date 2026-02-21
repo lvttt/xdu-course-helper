@@ -159,6 +159,10 @@
                     el.addEventListener('change', (e) => {
                         const bjdm = e.currentTarget.getAttribute('data-bjdm');
                         if (e.currentTarget.checked) {
+                            if (!window.xdu_course_helper.collectionData.some(item => item.BJDM === bjdm)) {
+                                e.currentTarget.checked = false;
+                                return;
+                            }
                             if (!window.xdu_course_helper.selectedCoursesInCollection.includes(bjdm)) {
                                 window.xdu_course_helper.selectedCoursesInCollection.push(bjdm);
                             }
@@ -199,6 +203,9 @@
     const handleCollectionButtonClick = (bjdm, isCollected) => {
         if (isCollected) {
             removeCourseFromCollection(bjdm);
+            if (window.xdu_course_helper.selectedCoursesInCollection.includes(bjdm)) {
+                window.xdu_course_helper.selectedCoursesInCollection = window.xdu_course_helper.selectedCoursesInCollection.filter(item => item !== bjdm);
+            }
         } else {
             const course = window.xdu_course_helper.zeroGridDatas.datas.find(item => item.BJDM === bjdm);
             addCourseToCollection(course);
@@ -235,7 +242,7 @@
     const hookZeroGrid = async () => {
         poll(() => {
             return window.zeroGrid != null
-        }).then(() => {
+        }, 20).then(() => {
             const originalRender = window.zeroGrid.prototype.render;
             const originalRenderData = window.zeroGrid.prototype.renderData;
             window.zeroGrid.prototype.render = function(...args) {
@@ -441,7 +448,7 @@
             const response = await fetch('https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/xsxkHome/loadPublicInfo_course.do');
             try {
                 const data = await response.json();
-                return data.school_id;
+                return data.csrfToken;
             } catch (error) {
                 console.error('Failed to fetch CSRF token:', error);
                 return null;
