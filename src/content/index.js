@@ -1,6 +1,5 @@
 // src/content/index.js
-(function(){
-
+(function () {
     console.log('选课助手 Content Script 已加载');
     const tabInsertList = [
         {
@@ -8,18 +7,18 @@
             roleVal: 999,
             zeroGridContainerId: '#collectionGrid',
             formContainerId: 'ysckcGrid',
-            init: function() {
+            init: function () {
                 collectionPageInit(this);
-            }
-        }
-    ]
+            },
+        },
+    ];
 
     const zeroGridInsertCollectionList = [
-        "#zynkcGrid",           // 计划内课程
-        "#allCourseGrid",       // 开课课程查询
-        "#blcAllCourseGrid",    // 本轮次开课课程查询
-        "#ysckcGrid",           // 已收藏课程
-    ]
+        '#zynkcGrid', // 计划内课程
+        '#allCourseGrid', // 开课课程查询
+        '#blcAllCourseGrid', // 本轮次开课课程查询
+        '#ysckcGrid', // 已收藏课程
+    ];
 
     /**
      * 通用的轮询/重试函数
@@ -60,35 +59,35 @@
     const createCustomTab = (liEl) => {
         if (!liEl) return null;
 
-        const myLiList = [];  
+        const myLiList = [];
         for (const tabInfo of tabInsertList) {
             const myliEl = liEl.cloneNode(true);
             const aEl = myliEl.querySelector('a');
             Object.assign(aEl, {
                 id: `xkkctab_${tabInfo.roleVal}`,
                 style: '',
-                textContent: tabInfo.text
+                textContent: tabInfo.text,
             });
             aEl.setAttribute('role-val', tabInfo.roleVal);
             aEl.setAttribute('role-title', tabInfo.text);
             aEl.setAttribute('show', 'true');
-            aEl.addEventListener('click', function() {
-                $('[cv-role="tab"]').parent().removeClass("cv-active"),
-                $(this).parent().addClass("cv-active");
+            aEl.addEventListener('click', function () {
+                ($('[cv-role="tab"]').parent().removeClass('cv-active'),
+                    $(this).parent().addClass('cv-active'));
                 tabInfo.init();
             });
             myLiList.push(myliEl);
         }
-        
+
         return myLiList;
     };
     const insertCustomTab = async () => {
         try {
             const ulEl = await poll(findUlElement);
-            
+
             const lastLi = ulEl.lastElementChild;
             const tabList = createCustomTab(lastLi);
-            
+
             if (tabList && tabList.length > 0) {
                 for (const tab of tabList) {
                     ulEl.appendChild(tab);
@@ -104,22 +103,25 @@
      * 添加已收藏课程页面
      **************************************/
     const collectionPageInit = (tabInfo) => {
-        $('[role="kcfltab"]').toggleClass("cv-block-hide", !0);
-        $("#xk_containrt_" + tabInfo.roleVal).removeClass("cv-block-hide");
+        $('[role="kcfltab"]').toggleClass('cv-block-hide', !0);
+        $('#xk_containrt_' + tabInfo.roleVal).removeClass('cv-block-hide');
         $(tabInfo.zeroGridContainerId).html(`<div id="${tabInfo.formContainerId}"></div>`);
-        const selectAllBtn = $('<button>').addClass('cv-btn cv-btn-primary')
+        const selectAllBtn = $('<button>')
+            .addClass('cv-btn cv-btn-primary')
             .css({ width: '80px', height: '35px', marginRight: '10px' })
             .text('全选')
             .on('click', () => {
                 changeAllCheckboxInCollection(true);
             });
-        const deselectAllBtn = $('<button>').addClass('cv-btn cv-btn-default')
+        const deselectAllBtn = $('<button>')
+            .addClass('cv-btn cv-btn-default')
             .css({ width: '80px', height: '35px', marginRight: '10px' })
             .text('全不选')
             .on('click', () => {
                 changeAllCheckboxInCollection(false);
             });
-        const batchSelectBtn = $('<button>').addClass('cv-btn cv-btn-success')
+        const batchSelectBtn = $('<button>')
+            .addClass('cv-btn cv-btn-success')
             .css({ width: '80px', height: '35px' })
             .text('批量选课')
             .on('click', () => {
@@ -130,28 +132,31 @@
         buttonContainer.append(selectAllBtn).append(deselectAllBtn).append(batchSelectBtn);
         $(tabInfo.zeroGridContainerId).prepend(buttonContainer);
 
-        window.courseTableFieldDefine.ysckcColumns = window.courseTableFieldDefine.yxkcColumns
-            .filter(col => col.display !== '操作' && col.display !== '课程类别');
-        window.courseTableFieldDefine.ysckcColumns.find(col => col.display === '学分').property = 'KCXF';
+        window.courseTableFieldDefine.ysckcColumns =
+            window.courseTableFieldDefine.yxkcColumns.filter(
+                (col) => col.display !== '操作' && col.display !== '课程类别'
+            );
+        window.courseTableFieldDefine.ysckcColumns.find((col) => col.display === '学分').property =
+            'KCXF';
         window.courseTableFieldDefine.ysckcColumns.unshift({
             display: '',
             width: '5%',
             align: 'center',
-            view: function(row) {
+            view: function (row) {
                 return '<input type="checkbox" xk-checkbox data-bjdm="' + row.BJDM + '" />';
-            }
+            },
         });
 
         window.xdu_course_helper.selectedCoursesInCollection = [];
 
-        (new zeroGrid({
-            container: "#" + tabInfo.formContainerId,
-            dataKey: "KCDM",
+        new zeroGrid({
+            container: '#' + tabInfo.formContainerId,
+            dataKey: 'KCDM',
             columns: window.courseTableFieldDefine.ysckcColumns,
             datas: window.xdu_course_helper.collectionData,
             pageSize: window.WIS_XTCS.xkgl_xsxkmymrxsjls,
-            loadAfterListener: function() {
-                $.find('input[xk-checkbox]').forEach(el => {
+            loadAfterListener: function () {
+                $.find('input[xk-checkbox]').forEach((el) => {
                     const bjdm = el.getAttribute('data-bjdm');
                     if (window.xdu_course_helper.selectedCoursesInCollection.includes(bjdm)) {
                         el.checked = true;
@@ -159,43 +164,51 @@
                     el.addEventListener('change', (e) => {
                         const bjdm = e.currentTarget.getAttribute('data-bjdm');
                         if (e.currentTarget.checked) {
-                            if (!window.xdu_course_helper.collectionData.some(item => item.BJDM === bjdm)) {
+                            if (
+                                !window.xdu_course_helper.collectionData.some(
+                                    (item) => item.BJDM === bjdm
+                                )
+                            ) {
                                 e.currentTarget.checked = false;
                                 return;
                             }
-                            if (!window.xdu_course_helper.selectedCoursesInCollection.includes(bjdm)) {
+                            if (
+                                !window.xdu_course_helper.selectedCoursesInCollection.includes(bjdm)
+                            ) {
                                 window.xdu_course_helper.selectedCoursesInCollection.push(bjdm);
                             }
                         } else {
-                            window.xdu_course_helper.selectedCoursesInCollection = window.xdu_course_helper.selectedCoursesInCollection.filter(item => item !== bjdm);
+                            window.xdu_course_helper.selectedCoursesInCollection =
+                                window.xdu_course_helper.selectedCoursesInCollection.filter(
+                                    (item) => item !== bjdm
+                                );
                         }
                     });
                 });
-            }
-        })).render()
+            },
+        }).render();
 
         console.log(`选课助手: ${tabInfo.text}页面初始化完成`);
-    }
+    };
     const createAllPageArticle = () => {
-        const originalArticle = $('<article>')
-            .addClass('cv-block-hide cv-pb-38')
-            .attr({
-                'role': 'kcfltab'
-            })
-        tabInsertList.forEach(tabInfo => {
+        const originalArticle = $('<article>').addClass('cv-block-hide cv-pb-38').attr({
+            role: 'kcfltab',
+        });
+        tabInsertList.forEach((tabInfo) => {
             const newArticle = $(originalArticle.clone(true));
             newArticle.attr('id', 'xk_containrt_' + tabInfo.roleVal);
             newArticle.append($('<div>').addClass('course_title'));
             newArticle.append(
-                $('<div>').addClass('cv-expert-mode')
-                        .attr({
-                            'id': tabInfo.zeroGridContainerId.replace('#', ''),
-                            'style': 'min-height: 550px;'
-                        })
+                $('<div>')
+                    .addClass('cv-expert-mode')
+                    .attr({
+                        id: tabInfo.zeroGridContainerId.replace('#', ''),
+                        style: 'min-height: 550px;',
+                    })
             );
             $('#cvAside').before(newArticle);
         });
-    }
+    };
 
     /**************************************
      * 插入收藏按钮
@@ -204,65 +217,82 @@
         if (isCollected) {
             removeCourseFromCollection(bjdm);
             if (window.xdu_course_helper.selectedCoursesInCollection.includes(bjdm)) {
-                window.xdu_course_helper.selectedCoursesInCollection = window.xdu_course_helper.selectedCoursesInCollection.filter(item => item !== bjdm);
+                window.xdu_course_helper.selectedCoursesInCollection =
+                    window.xdu_course_helper.selectedCoursesInCollection.filter(
+                        (item) => item !== bjdm
+                    );
             }
         } else {
-            const course = window.xdu_course_helper.zeroGridDatas.datas.find(item => item.BJDM === bjdm);
+            const course = window.xdu_course_helper.zeroGridDatas.datas.find(
+                (item) => item.BJDM === bjdm
+            );
             addCourseToCollection(course);
         }
         window.xdu_course_helper.zeroGridRenderDataFunc(window.xdu_course_helper.zeroGridDatas);
-    }
+    };
     const insertCollectionButton = (zeroGridInstance) => {
         if (zeroGridInsertCollectionList.includes(zeroGridInstance.params.container)) {
-            if (zeroGridInstance.params.columns.some(col => col.display === '收藏')) {
+            if (zeroGridInstance.params.columns.some((col) => col.display === '收藏')) {
                 return;
             }
             zeroGridInstance.params.columns.push({
                 display: '收藏',
                 width: '7%',
                 align: 'center',
-                view: function(row) {
-                    const isCollected = window.xdu_course_helper.collectionData.some(item => item.BJDM === row.BJDM);
-                    return '<a class="zeromodal-btn zeromodal-btn-primary xkbtn" collection-button \
-                    collection-status='+isCollected+' data-bjdm='+row.BJDM+'  href="javascript:void(0);" ">\
-                    '+ (isCollected ? '取消收藏' : '收藏') +'</a>';
-                }
-            })
+                view: function (row) {
+                    const isCollected = window.xdu_course_helper.collectionData.some(
+                        (item) => item.BJDM === row.BJDM
+                    );
+                    return (
+                        '<a class="zeromodal-btn zeromodal-btn-primary xkbtn" collection-button \
+                    collection-status=' +
+                        isCollected +
+                        ' data-bjdm=' +
+                        row.BJDM +
+                        '  href="javascript:void(0);" ">\
+                    ' +
+                        (isCollected ? '取消收藏' : '收藏') +
+                        '</a>'
+                    );
+                },
+            });
         }
-    }
+    };
     const bindCollectionButtonEvent = () => {
-        $.find('a[collection-button]').forEach(el => {
+        $.find('a[collection-button]').forEach((el) => {
             el.addEventListener('click', (e) => {
                 const bjdm = e.currentTarget.getAttribute('data-bjdm');
                 const isCollected = e.currentTarget.getAttribute('collection-status') === 'true';
                 handleCollectionButtonClick(bjdm, isCollected);
-            })
+            });
         });
-    }
+    };
     const hookZeroGrid = async () => {
         poll(() => {
-            return window.zeroGrid != null
-        }, 20).then(() => {
-            const originalRender = window.zeroGrid.prototype.render;
-            const originalRenderData = window.zeroGrid.prototype.renderData;
-            window.zeroGrid.prototype.render = function(...args) {
-                // 这里可以在渲染前后进行操作，例如修改参数、插入按钮等
-                insertCollectionButton(this);
-                originalRender.apply(this, args);   
-            }
-            window.zeroGrid.prototype.renderData = function(...args) {
-                // 这里可以在数据渲染前后进行操作，例如绑定事件等
-                originalRenderData.apply(this, args);
-                bindCollectionButtonEvent();
-                window.xdu_course_helper.zeroGridDatas = args[0];
-                window.xdu_course_helper.zeroGridRenderDataFunc = this.renderData.bind(this);
-            }
-            window.zynkc_zeroGrid.render();
-            console.log('选课助手: 成功找到 zeroGrid 对象并完成函数钩子');
-        }).catch((error) => {
-            console.warn('选课助手: 无法找到 zeroGrid 对象，无法进行函数钩子', error);
-        });
-    }
+            return window.zeroGrid != null;
+        }, 20)
+            .then(() => {
+                const originalRender = window.zeroGrid.prototype.render;
+                const originalRenderData = window.zeroGrid.prototype.renderData;
+                window.zeroGrid.prototype.render = function (...args) {
+                    // 这里可以在渲染前后进行操作，例如修改参数、插入按钮等
+                    insertCollectionButton(this);
+                    originalRender.apply(this, args);
+                };
+                window.zeroGrid.prototype.renderData = function (...args) {
+                    // 这里可以在数据渲染前后进行操作，例如绑定事件等
+                    originalRenderData.apply(this, args);
+                    bindCollectionButtonEvent();
+                    window.xdu_course_helper.zeroGridDatas = args[0];
+                    window.xdu_course_helper.zeroGridRenderDataFunc = this.renderData.bind(this);
+                };
+                window.zynkc_zeroGrid.render();
+                console.log('选课助手: 成功找到 zeroGrid 对象并完成函数钩子');
+            })
+            .catch((error) => {
+                console.warn('选课助手: 无法找到 zeroGrid 对象，无法进行函数钩子', error);
+            });
+    };
 
     /**************************************
      * 已收藏课程crud逻辑
@@ -270,59 +300,68 @@
     const getCollectionData = () => {
         const data = localStorage.getItem('course_collection');
         return data ? JSON.parse(data) : [];
-    }
+    };
 
     const saveCollectionData = (collection) => {
         localStorage.setItem('course_collection', JSON.stringify(collection));
-    }
+    };
 
     const loadCollectionData = () => {
         window.xdu_course_helper.collectionData = getCollectionData();
         // console.log('选课助手: 已加载收藏课程数据', window.xdu_course_helper.collectionData);
-    }
+    };
 
     const addCourseToCollection = (course) => {
-        const index = window.xdu_course_helper.collectionData.findIndex(item => item.BJDM === course.BJDM);
+        const index = window.xdu_course_helper.collectionData.findIndex(
+            (item) => item.BJDM === course.BJDM
+        );
         if (index !== -1) {
             window.xdu_course_helper.collectionData[index] = course;
         } else {
             window.xdu_course_helper.collectionData.push(course);
         }
         saveCollectionData(window.xdu_course_helper.collectionData);
-    }
+    };
 
     const removeCourseFromCollection = (bjdm) => {
-        window.xdu_course_helper.collectionData = window.xdu_course_helper.collectionData.filter(item => item.BJDM !== bjdm);
+        window.xdu_course_helper.collectionData = window.xdu_course_helper.collectionData.filter(
+            (item) => item.BJDM !== bjdm
+        );
         saveCollectionData(window.xdu_course_helper.collectionData);
-    }
+    };
 
     /**************************************
      * 批量选课逻辑
      **************************************/
     const changeAllCheckboxInCollection = (status) => {
         window.xdu_course_helper.selectedCoursesInCollection = [];
-        $.find('input[xk-checkbox]').forEach(el => {
+        $.find('input[xk-checkbox]').forEach((el) => {
             el.checked = status;
             const bjdm = el.getAttribute('data-bjdm');
             if (status) {
                 window.xdu_course_helper.selectedCoursesInCollection.push(bjdm);
             } else {
-                window.xdu_course_helper.selectedCoursesInCollection = window.xdu_course_helper.selectedCoursesInCollection.filter(item => item !== bjdm);
+                window.xdu_course_helper.selectedCoursesInCollection =
+                    window.xdu_course_helper.selectedCoursesInCollection.filter(
+                        (item) => item !== bjdm
+                    );
             }
         });
-    }
-    
+    };
+
     const getSelectedCoursesInCollection = () => {
         const selectedCourses = [];
-        $.find('input[xk-checkbox]:checked').forEach(el => {
+        $.find('input[xk-checkbox]:checked').forEach((el) => {
             const bjdm = el.getAttribute('data-bjdm');
-            const course = window.xdu_course_helper.collectionData.find(item => item.BJDM === bjdm);
+            const course = window.xdu_course_helper.collectionData.find(
+                (item) => item.BJDM === bjdm
+            );
             if (course) {
                 selectedCourses.push(course);
             }
         });
         return selectedCourses;
-    }
+    };
 
     const batchSelectCourses = async (courses) => {
         if (courses.length === 0) {
@@ -334,7 +373,7 @@
 
         console.log('选课助手: 批量提交选课队列开始');
 
-        const requestPromises = courses.map(course => 
+        const requestPromises = courses.map((course) =>
             submitCourse({ bjdm: course.BJDM, csrfToken })
         );
         const results = await Promise.allSettled(requestPromises);
@@ -347,27 +386,27 @@
                 } else {
                     failureCourses.push({
                         courseName: course.KCMC,
-                        message: res?.msg || '选课请求失败'
+                        message: res?.msg || '选课请求失败',
                     });
                 }
             } else {
                 failureCourses.push({
                     courseName: course.KCMC,
-                    message: '选课请求失败'
+                    message: '选课请求失败',
                 });
             }
         });
 
         console.log('选课助手: 批量提交选课队列完成');
         showBatchSelectResult(successCourses, failureCourses);
-    }
+    };
 
     const showBatchSelectResult = (successCourses, failureCourses) => {
         const modalId = 'xdu-helper-result-modal';
         $(`#${modalId}`).remove();
 
         const total = successCourses.length + failureCourses.length;
-        
+
         const modalHtml = `
         <div id="${modalId}" style="z-index: 999999; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); font-family: system-ui, -apple-system, sans-serif;">
             <div style="background: white; width: 520px; max-width: 95%; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; animation: xduSlideUp 0.3s ease-out;">
@@ -378,7 +417,9 @@
 
                 <div style="padding: 24px; max-height: 450px; overflow-y: auto;">
                     
-                    ${successCourses.length > 0 ? `
+                    ${
+                        successCourses.length > 0
+                            ? `
                         <div style="margin-bottom: 24px;">
                             <div style="display: flex; align-items: center; gap: 8px; color: #059669; font-size: 15px; font-weight: 700; margin-bottom: 12px;">
                                 <span>🚀 已成功提交队列 (${successCourses.length})</span>
@@ -389,30 +430,44 @@
                                 </p>
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                                ${successCourses.map(name => `
+                                ${successCourses
+                                    .map(
+                                        (name) => `
                                     <div style="width: calc(50% - 6px); background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; border-radius: 8px; box-sizing: border-box;">
                                         <div style="font-size: 13px; color: #374151; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${name}">${name}</div>
                                     </div>
-                                `).join('')}
+                                `
+                                    )
+                                    .join('')}
                             </div>
                         </div>
-                    ` : ''}
+                    `
+                            : ''
+                    }
 
-                    ${failureCourses.length > 0 ? `
+                    ${
+                        failureCourses.length > 0
+                            ? `
                         <div>
                             <div style="display: flex; align-items: center; gap: 8px; color: #dc2626; font-size: 15px; font-weight: 700; margin-bottom: 12px;">
                                 <span>❌ 提交失败 (${failureCourses.length})</span>
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                                ${failureCourses.map(f => `
+                                ${failureCourses
+                                    .map(
+                                        (f) => `
                                     <div style="width: calc(50% - 6px); background: #fef2f2; border: 1px solid #fee2e2; padding: 10px; border-radius: 8px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
                                         <div style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${f.courseName}</div>
                                         <div style="font-size: 11px; color: #b91c1c; opacity: 0.8;">原因: ${f.message}</div>
                                     </div>
-                                `).join('')}
+                                `
+                                    )
+                                    .join('')}
                             </div>
                         </div>
-                    ` : ''}
+                    `
+                            : ''
+                    }
                 </div>
 
                 <div style="padding: 16px 24px; background: #f9fafb; border-top: 1px solid #f0f0f0; text-align: right;">
@@ -434,18 +489,22 @@
         `;
 
         $('body').append(modalHtml);
-        
-        $('#xdu-close-modal').on('click', function() {
-            $(`#${modalId}`).fadeOut(200, function() { $(this).remove(); });
+
+        $('#xdu-close-modal').on('click', function () {
+            $(`#${modalId}`).fadeOut(200, function () {
+                $(this).remove();
+            });
         });
     };
 
     const getCsrfToken = async () => {
-        const csrfToken = $("#csrfToken").val();
+        const csrfToken = $('#csrfToken').val();
         if (csrfToken) {
             return csrfToken;
         } else {
-            const response = await fetch('https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/xsxkHome/loadPublicInfo_course.do');
+            const response = await fetch(
+                'https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/xsxkHome/loadPublicInfo_course.do'
+            );
             try {
                 const data = await response.json();
                 return data.csrfToken;
@@ -454,27 +513,29 @@
                 return null;
             }
         }
-    }
+    };
 
     const submitCourse = async (data) => {
-        return fetch('https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/xsxkCourse/choiceCourse.do', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(data).toString()
-        }).then(response => response.json());
-    }
+        return fetch(
+            'https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/xsxkCourse/choiceCourse.do',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(data).toString(),
+            }
+        ).then((response) => response.json());
+    };
 
     insertCustomTab();
     loadCollectionData();
     hookZeroGrid();
-    
+
     poll(() => {
         if (window.$) return true;
     }).then(() => {
         // 需要使用$的操作放在这里
         createAllPageArticle();
-    })
-
+    });
 })();

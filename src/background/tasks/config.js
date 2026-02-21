@@ -6,21 +6,23 @@ const defaultConfig = {
     pageSize: 30,
     rememberMe: false,
     redirectOnError: false,
-    enablePageSizeChange: false
+    enablePageSizeChange: false,
 };
 
 // 获取扩展配置
 export async function handleGetConfig(tabId) {
-    return chrome.scripting.executeScript({
-        target: { tabId },
-        world: 'MAIN',
-        func: () => {
-            return window.xdu_course_helper.getLocalStorage('extConfig');
-        }
-    }).then((results) => {
-        const [{ result }] = results;
-        return result || defaultConfig;
-    });
+    return chrome.scripting
+        .executeScript({
+            target: { tabId },
+            world: 'MAIN',
+            func: () => {
+                return window.xdu_course_helper.getLocalStorage('extConfig');
+            },
+        })
+        .then((results) => {
+            const [{ result }] = results;
+            return result || defaultConfig;
+        });
 }
 
 // 更新扩展配置
@@ -31,7 +33,7 @@ export async function handleUpdateConfig(tabId, newConfig) {
         func: (config) => {
             window.xdu_course_helper.setLocalStorage('extConfig', config);
         },
-        args: [newConfig]
+        args: [newConfig],
     });
 }
 
@@ -44,6 +46,6 @@ export async function handleUpdatePageSize(tabId, pageSize) {
             window.WIS_XTCS.xkgl_xsxkmymrxsjls = size.toString();
             // console.log(`已更新页面课程列表数量为: ${size}`);
         },
-        args: [pageSize]
-    }); 
+        args: [pageSize],
+    });
 }
