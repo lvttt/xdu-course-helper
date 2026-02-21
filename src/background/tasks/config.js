@@ -42,7 +42,7 @@ export async function handleUpdatePageSize(tabId, pageSize) {
         world: 'MAIN',
         func: (size) => {
             window.WIS_XTCS.xkgl_xsxkmymrxsjls = size.toString();
-            console.log(`已更新页面课程列表数量为: ${size}`);
+            // console.log(`已更新页面课程列表数量为: ${size}`);
         },
         args: [pageSize]
     }); 
